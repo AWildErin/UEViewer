@@ -159,6 +159,9 @@ public:
 	TArray<CSkelMeshSocket>	Sockets;				//?? common (UE4 has StaticMesh sockets)
 	const class CAnimSet*	Anim;
 
+	// @erin
+	bool					bAltInfluences;
+
 	CSkeletalMesh(const UObject *Original)
 	:	OriginalMesh(Original)
 	,	Anim(NULL)

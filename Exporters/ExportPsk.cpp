@@ -477,9 +477,9 @@ void ExportPsk(const CSkeletalMesh *Mesh)
 		char filename[512];
 		const char *Ext = (UsePskx) ? "pskx" : "psk";
 		if (Lod == 0)
-			appSprintf(ARRAY_ARG(filename), "%s.%s", OriginalMesh->Name, Ext);
+			appSprintf(ARRAY_ARG(filename), Mesh->bAltInfluences ? "%s_AltInfluences.%s" : "%s.%s", OriginalMesh->Name, Ext);
 		else
-			appSprintf(ARRAY_ARG(filename), "%s_Lod%d.%s", OriginalMesh->Name, Lod, Ext);
+			appSprintf(ARRAY_ARG(filename), Mesh->bAltInfluences ? "%s_Lod%d_AltInfluences.%s" : "%s_Lod%d.%s", OriginalMesh->Name, Lod, Ext);
 
 		FArchive *Ar = CreateExportArchive(OriginalMesh, EFileArchiveOptions::Default, "%s", filename);
 		if (Ar)

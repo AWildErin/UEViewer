@@ -242,6 +242,7 @@ public:
 #endif
 
 	CSkeletalMesh			*ConvertedMesh;
+	CSkeletalMesh			*ConvertedMeshWithAltInfluences;
 
 	BEGIN_PROP_TABLE
 		PROP_ARRAY(LODInfo, "FSkeletalMeshLODInfo")
@@ -306,7 +307,7 @@ public:
 	virtual void GetMetadata(FArchive& Ar) const;
 
 protected:
-	void ConvertMesh();
+	void ConvertMesh(CSkeletalMesh*& InMesh, bool bUseAltInfluences = false);
 };
 
 

@@ -2101,17 +2101,19 @@ after_skeleton:
 }
 
 
-void USkeletalMesh3::ConvertMesh()
+void USkeletalMesh3::ConvertMesh(CSkeletalMesh*& InMesh, bool bUseAltInfluences)
 {
 	guard(USkeletalMesh3::ConvertMesh);
 
 	// We're calling ConvertMesh explicitly from UMorphTargetSet::PostLoad to ensure
 	// mesh is ready before we're filling morphs, so let's avoid repeating of PostLoad() ...
-	if (ConvertedMesh)
+	if (InMesh)
 		return;
 
-	CSkeletalMesh *Mesh = new CSkeletalMesh(this);
-	ConvertedMesh = Mesh;
+	CSkeletalMesh* Mesh = new CSkeletalMesh(this);
+	InMesh = Mesh;
+
+	Mesh->bAltInfluences = bUseAltInfluences;
 
 	int ArGame = GetGame();
 
@@ -2271,14 +2273,40 @@ void USkeletalMesh3::ConvertMesh()
 				}
 				// convert Normal[3]
 				UnpackNormals(V->Normal, *D);
-				// convert influences
+
+
+				// Get the extra influence data
+				// @note Doesn't seem to have anything higher than 0, but UE supports it.
+
+				int VertexInfluencePackedBone = 0;
+				int VertexInfluencePackedWeights = 0;
+				if (bUseAltInfluences)
+				{
+					const FVertexInfluence& ExtraVertexInfluence = SrcLod.ExtraVertexInfluences[0].Influences[Vert];
+					VertexInfluencePackedBone = ExtraVertexInfluence.Boned;
+					VertexInfluencePackedWeights = ExtraVertexInfluence.Boned;
+				}
+
 				int i2 = 0;
 				unsigned PackedWeights = 0;
 				for (int i = 0; i < NUM_INFLUENCES_UE3; i++)
 				{
-					int BoneIndex  = V->BoneIndex[i];
-					byte BoneWeight = V->BoneWeight[i];
+					int BoneIndex;
+					byte BoneWeight;
+					
+					if (bUseAltInfluences)
+					{
+						BoneIndex = (VertexInfluencePackedBone >> (8 * i)) & 0xFF;
+						BoneWeight = (VertexInfluencePackedWeights >> (8 * i)) & 0xFF;
+					}
+					else
+					{
+						BoneIndex = V->BoneIndex[i];
+						BoneWeight = V->BoneWeight[i];
+					}
+
 					if (BoneWeight == 0) continue;				// skip this influence (but do not stop the loop!)
+
 					PackedWeights |= BoneWeight << (i2 * 8);
 					D->Bone[i2]   = C->Bones[BoneIndex];
 					i2++;
@@ -2408,8 +2436,18 @@ void USkeletalMesh3::PostLoad()
 	guard(USkeletalMesh3::PostLoad);
 
 	// MK X has bones serialized in separate USkeleton object, so perform conversion in PostLoad()
-	ConvertMesh();
+	ConvertMesh(ConvertedMesh);
 	assert(ConvertedMesh);
+
+	for (int lod = 0; lod < LODModels.Num(); lod++)
+	{
+		if (LODModels[lod].ExtraVertexInfluences.Num() > 0)
+		{
+			ConvertMesh(ConvertedMeshWithAltInfluences, true);
+			break;
+		}
+	}
+
 
 	int NumSockets = Sockets.Num();
 	if (NumSockets)

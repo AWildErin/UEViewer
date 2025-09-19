@@ -299,7 +299,16 @@ static void RegisterExporters()
 	RegisterExporter<UStaticMesh>([](const UStaticMesh* Mesh) { CallExportStaticMesh(Mesh->ConvertedMesh); });
 	RegisterExporter<USound>(ExportSound);
 #if UNREAL3
-	RegisterExporter<USkeletalMesh3>([](const USkeletalMesh3* Mesh) { CallExportSkeletalMesh(Mesh->ConvertedMesh); });
+	RegisterExporter<USkeletalMesh3>(
+		[](const USkeletalMesh3* Mesh)
+		{ 
+			CallExportSkeletalMesh(Mesh->ConvertedMesh); 
+			if (Mesh->ConvertedMeshWithAltInfluences)
+			{
+				CallExportSkeletalMesh(Mesh->ConvertedMeshWithAltInfluences);
+			}
+		}
+	);
 	RegisterExporter<UAnimSet>([](const UAnimSet* Anim) { CallExportAnimation(Anim->ConvertedAnim); });
 	RegisterExporter<UStaticMesh3>([](const UStaticMesh3* Mesh) { CallExportStaticMesh(Mesh->ConvertedMesh); });
 	RegisterExporter<USoundNodeWave>(ExportSoundNodeWave);
