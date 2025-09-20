@@ -232,6 +232,10 @@ public:
 
 	CVec3 GetMeshOrigin() const;
 
+	// @erin: Public because we need to clear them from the mesh viewer
+	// and i dont fancy figuring out a better way to place this
+	void ClearInfColors();
+
 protected:
 	const CAnimSet*		Animation;
 	// mesh data

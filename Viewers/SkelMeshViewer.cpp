@@ -361,6 +361,18 @@ void CSkelMeshViewer::Draw2D()
 				 MeshInst->UVIndex+1, Lod.NumTexCoords,
 				 Lod.VertexColors ? "present" : "none",
 				 Mesh->RefSkeleton.Num());
+
+	const USkeletalMesh3* Unreal3Mesh = static_cast<const USkeletalMesh3*>(Mesh->OriginalMesh);
+	if (Unreal3Mesh)
+	{
+		DrawTextLeft(
+			S_GREEN "Has alt influences     : " S_WHITE "%s\n"
+			S_GREEN "Viewing alt influences : " S_WHITE "%s\n",
+			Unreal3Mesh->ConvertedMeshWithAltInfluences ? "yes" : "no",
+			Mesh->bAltInfluences ? "yes" : "no"
+		);
+	}
+
 	//!! show MaxInfluences etc
 
 	// materials
@@ -685,6 +697,8 @@ void CSkelMeshViewer::ProcessKey(unsigned key)
 	float		Rate;
 	MeshInst->GetAnimParams(0, AnimName, Frame, NumFrames, Rate);
 
+	const USkeletalMesh3* Unreal3Mesh = static_cast<const USkeletalMesh3*>(Mesh->OriginalMesh);
+
 	switch (key)
 	{
 	// animation control
@@ -782,6 +796,24 @@ void CSkelMeshViewer::ProcessKey(unsigned key)
 		break;
 	case 'i':
 		DrawFlags ^= DF_SHOW_INFLUENCES;
+		break;
+	case 'i'|KEY_CTRL:
+		// switch between normal and alt influences on ue3 meshes
+		if (Unreal3Mesh && Unreal3Mesh->ConvertedMeshWithAltInfluences)
+		{
+			if (Mesh == Unreal3Mesh->ConvertedMesh)
+			{
+				Mesh = Unreal3Mesh->ConvertedMeshWithAltInfluences;
+			}
+			else
+			{
+				Mesh = Unreal3Mesh->ConvertedMesh;
+			}
+
+			// Clear the cached inf colors so we rebuild
+			MeshInst->ClearInfColors();
+			MeshInst->pMesh = Mesh;
+		}
 		break;
 	case 'b'|KEY_CTRL:
 		MeshInst->DumpBones();

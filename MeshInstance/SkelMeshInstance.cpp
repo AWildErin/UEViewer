@@ -1626,6 +1626,20 @@ void CSkelMeshInstance::Draw(unsigned flags)
 	unguard;
 }
 
+void CSkelMeshInstance::ClearInfColors()
+{
+	guard(CSkelMeshInstance::ClearInfColors);
+
+	if (InfColors)
+	{
+		delete[] InfColors;
+		InfColors = NULL;
+	}
+
+	HighlightBoneIndex = -1;
+
+	unguard;
+}
 
 void CSkelMeshInstance::BuildInfColors()
 {
